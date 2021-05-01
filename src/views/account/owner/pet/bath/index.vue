@@ -2,37 +2,69 @@
   <div>
       <b-row class="m-2" align-h="between">
           <b-col cols="1">
-                <router-link :to="'/owner/pet/1/all'"
+                <router-link :to="'/owner/pet/'+$route.params.id+'/all'"
           ><b-button size="sm"
             ><i class="iconsminds-left"/></b-button></router-link
         >
           </b-col>
           <b-col cols="4" >
-            <b-button class="float-right" v-b-modal.modalVaccine variant="primary" size="sm">Add Food</b-button>
-            <b-modal
-              id="modalVaccine"
-              ref="modalVaccine"
-              :title="$t('Add Bath')"
+            <b-button v-if="selected" class="float-right" v-b-modal.modalEditBath variant="secondary" size="sm">Edit Bath</b-button>
+                        <b-modal
+                        v-if="selected"
+              id="modalEditBath"
+              ref="modalEditBath"
+              :title="$t('Edit Bath')"
               modal-class="modal-right"
             >
               <b-form>
                 <b-form-group :label="$t('Description')">
-                  <b-form-input v-model="newVaccine.name" />
+                  <b-form-input v-model="selected.description" />
                 </b-form-group>
                 <b-form-group :label="$t('Date')">
-                  <datetime format="YYYY-MM-DD H:i:s" width="300px" v-model="newVaccine.date"></datetime>
+                  <datetime format="YYYY-MM-DD H:i:s" width="300px" v-model="selected.date"></datetime>
                 </b-form-group>
               </b-form>
 
               <template slot="modal-footer">
                 <b-button
                   variant="outline-secondary"
-                  @click="hideModal('modalright')"
+                  @click="hideModal('modalEditBath')"
                   >{{ $t("pages.cancel") }}</b-button
                 >
                 <b-button
                   variant="primary"
-                  @click="addNewPet()"
+                  @click="updateBath()"
+                  class="mr-1"
+                  >{{ $t("pages.submit") }}</b-button
+                >
+              </template>
+            </b-modal>
+
+            <b-button class="float-right" v-b-modal.modalBath variant="primary" size="sm">Add Bath</b-button>
+            <b-modal
+              id="modalBath"
+              ref="modalBath"
+              :title="$t('Add Bath')"
+              modal-class="modal-right"
+            >
+              <b-form>
+                <b-form-group :label="$t('Description')">
+                  <b-form-input v-model="newBath.description" />
+                </b-form-group>
+                <b-form-group :label="$t('Date')">
+                  <datetime format="YYYY-MM-DD H:i:s" width="300px" v-model="newBath.date"></datetime>
+                </b-form-group>
+              </b-form>
+
+              <template slot="modal-footer">
+                <b-button
+                  variant="outline-secondary"
+                  @click="hideModal('modalBath')"
+                  >{{ $t("pages.cancel") }}</b-button
+                >
+                <b-button
+                  variant="primary"
+                  @click="addNewBath()"
                   class="mr-1"
                   >{{ $t("pages.submit") }}</b-button
                 >
@@ -49,19 +81,19 @@
         class="vuetable"
         sort-by="title"
         sort-desc.sync="false"
-        @row-selected="rowSelected"
+        @row-selected="onRowSelected"
         selectable
         :select-mode="bootstrapTable.selectMode"
         :current-page="currentPage"
         selectedVariant="primary"
         :fields="bootstrapTable.fields"
-        :items="dataProvider"
+        :items="bathsList"
       >
-        <template #cell(action)="">
-          <b-button variant="success" size="sm">
+        <template #cell(action)="bath">
+          <b-button @click="confirmBath(bath.item._id)" v-if="!bath.item.done" variant="success" size="sm">
             Confirmer
           </b-button>
-          <b-button variant="danger" size="sm">
+          <b-button @click="deleteBath(bath.item._id)"  variant="danger" size="sm">
             Delete
           </b-button>
         </template>
@@ -100,18 +132,19 @@ export default {
   },
   data() {
     return {
-      newVaccine: {
-        name: null,
-        vet: null,
+      newBath: {
+        description: null,
         date: null,
-        desc: null,
       },
+      bathsList: [],
+      petId: this.$route.params.id,
+      selected: null,
       currentPage: 1,
       perPage: 5,
       totalRows: 0,
       bootstrapTable: {
         selected: [],
-        selectMode: "multi",
+        selectMode: "single",
         fields: [
           {
             key: "description",
@@ -131,12 +164,30 @@ export default {
       }
     };
   },
+  mounted(){
+     this.getBaths()
+  },
   methods: {
       hideModal(refname) {
       this.$refs[refname].hide();
     },
-    addNewPet() {
-      console.log("adding item : ", this.newPet);
+    onRowSelected(items) {
+        this.selected = items[0]
+      },
+    addNewBath() {
+      this.$Axios.post('/pet/'+this.petId+'/bath',this.newBath)
+      .then(res => {
+        this.newBath = {}
+        this.getBaths()
+        this.hideModal('modalBath')
+        this.$notify("success", "Bath", "Bath added", {
+          duration: 3000,
+          permanent: false
+        });
+      })
+      .catch(e => {
+        console.log(e)
+      })
     },
     onPaginationData(paginationData) {
       this.$refs.pagination.setPaginationData(paginationData);
@@ -144,11 +195,52 @@ export default {
     onChangePage(page) {
       this.$refs.vuetable.changePage(page);
     },
-    dataProvider(ctx) {
-      return [{
-              description: 'description of bath products',
-              date: '12.12.2020 12:20',
-          }];
+    getBaths(){
+      this.$Axios.get('/pet/'+this.petId+'/bath')
+      .then(res => {
+        this.bathsList= []
+        res.data.forEach(bath => {
+          this.bathsList.push(bath)
+        })
+      })
+      .catch(e => {
+        console.log(e)
+      })
+    },
+    confirmBath(id){
+      this.$Axios.put('/pet/'+this.petId+'/bath/' + id,{done: true})
+        .then(res => {
+          this.getBaths()
+          this.$notify("success", "Bath", "Bath confimed", {
+          duration: 3000,
+          permanent: false
+        });
+        })
+        .catch(e => console.log(e))
+    },
+    updateBath(){
+      this.$Axios.put('/pet/'+this.petId+'/bath/' + this.selected._id,this.selected)
+        .then(res => {
+          this.getBaths()
+          
+          this.hideModal('modalEditBath')
+          this.$notify("success", "Bath", "Bath updated", {
+          duration: 3000,
+          permanent: false
+        });
+        })
+        .catch(e => console.log(e))
+    },
+    deleteBath(id){
+       this.$Axios.delete('/pet/'+this.petId+'/bath/' + id)
+        .then(res => {
+          this.getBaths()
+          this.$notify("success", "Bath", "Bath deleted", {
+          duration: 3000,
+          permanent: false
+        });
+        })
+        .catch(e => console.log(e))
     },
   }
 };

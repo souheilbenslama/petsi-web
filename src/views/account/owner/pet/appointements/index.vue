@@ -2,24 +2,25 @@
   <div>
       <b-row class="m-2" align-h="between">
           <b-col cols="1">
-                <router-link :to="'/owner/pet/1/all'"
+                <router-link :to="'/owner/pet/'+$route.params.id+'/all'"
           ><b-button size="sm"
             ><i class="iconsminds-left"/></b-button></router-link
         >
           </b-col>
           <b-col cols="4" >
-            <b-button class="float-right" v-b-modal.modalVaccine variant="primary" size="sm">Add Appointement</b-button>
-            <b-modal
-              id="modalVaccine"
-              ref="modalVaccine"
-              :title="$t('Add Appointement')"
+             <b-button v-if="selected" class="float-right" v-b-modal.modalEditAppointment variant="secondary" size="sm">Edit Appointment</b-button>
+                        <b-modal
+                        v-if="selected"
+              id="modalEditAppointment"
+              ref="modalEditAppointment"
+              :title="$t('pages.add-new-pet')"
               modal-class="modal-right"
             >
               <b-form>
                   <b-form-group :label="$t('Date')">
                   <b-form-datepicker
                     id="minDate"
-                    v-model="newVaccine.date"
+                    v-model="selected.date"
                     size="lg"
                     today-button
                     close-button
@@ -29,25 +30,76 @@
                   />
                 </b-form-group>
                 <b-form-group :label="$t('veterinary')">
-                  <b-form-input v-model="newVaccine.vet" />
+                  <b-form-select
+                    v-model="selected.vet"
+                    :options="vetOptions"
+                  ></b-form-select>
                 </b-form-group>
                 <b-form-group :label="$t('Place')">
-                  <b-form-input v-model="newVaccine.name" />
+                  <b-form-input v-model="selected.lieu" />
                 </b-form-group>
                 <b-form-group :label="$t('Report')">
-                  <b-form-input v-model="newVaccine.name" />
+                  <b-form-input v-model="selected.rapport" />
                 </b-form-group>
               </b-form>
 
               <template slot="modal-footer">
                 <b-button
                   variant="outline-secondary"
-                  @click="hideModal('modalright')"
+                  @click="hideModal('modalEditAppointment')"
                   >{{ $t("pages.cancel") }}</b-button
                 >
                 <b-button
                   variant="primary"
-                  @click="addNewPet()"
+                  @click="updateAppointment()"
+                  class="mr-1"
+                  >{{ $t("pages.submit") }}</b-button
+                >
+              </template>
+            </b-modal>
+            <b-button class="float-right" v-b-modal.modalAppointment variant="primary" size="sm">Add Appointment</b-button>
+            <b-modal
+              id="modalAppointment"
+              ref="modalAppointment"
+              :title="$t('Add Appointment')"
+              modal-class="modal-right"
+            >
+              <b-form>
+                  <b-form-group :label="$t('Date')">
+                  <b-form-datepicker
+                    id="minDate"
+                    v-model="newAppointment.date"
+                    size="lg"
+                    today-button
+                    close-button
+                    start-weekday="1"
+                    value-as-date
+                    locale="en-GB"
+                  />
+                </b-form-group>
+                <b-form-group :label="$t('veterinary')">
+                  <b-form-select
+                    v-model="newAppointment.vet"
+                    :options="vetOptions"
+                  ></b-form-select>
+                </b-form-group>
+                <b-form-group :label="$t('Place')">
+                  <b-form-input v-model="newAppointment.lieu" />
+                </b-form-group>
+                <b-form-group :label="$t('Report')">
+                  <b-form-input v-model="newAppointment.rapport" />
+                </b-form-group>
+              </b-form>
+
+              <template slot="modal-footer">
+                <b-button
+                  variant="outline-secondary"
+                  @click="hideModal('modalAppointment')"
+                  >{{ $t("pages.cancel") }}</b-button
+                >
+                <b-button
+                  variant="primary"
+                  @click="addNewAppointment()"
                   class="mr-1"
                   >{{ $t("pages.submit") }}</b-button
                 >
@@ -57,26 +109,26 @@
       </b-row>
     <b-card>
       <b-card-header class="mb-1 font-weight-bold text-primary">
-        <h3>{{ $t("Appointements") }}</h3>
+        <h3>{{ $t("Appointments") }}</h3>
       </b-card-header>
       <b-table
         ref="custom-table"
         class="vuetable"
         sort-by="title"
         sort-desc.sync="false"
-        @row-selected="rowSelected"
+        @row-selected="onRowSelected"
         selectable
         :select-mode="bootstrapTable.selectMode"
         :current-page="currentPage"
         selectedVariant="primary"
         :fields="bootstrapTable.fields"
-        :items="dataProvider"
+        :items="appointmentsList"
       >
-        <template #cell(action)="">
-          <b-button variant="success" size="sm">
+        <template #cell(action)="appointment">
+          <b-button @click="confirmAppointment(appointment.item._id)" v-if="!appointment.item.done" variant="success" size="sm">
             Confirmer
           </b-button>
-          <b-button variant="danger" size="sm">
+          <b-button @click="deleteAppointment(appointment.item._id)"  variant="danger" size="sm">
             Delete
           </b-button>
         </template>
@@ -113,18 +165,22 @@ export default {
   },
   data() {
     return {
-      newVaccine: {
-        name: null,
-        vet: null,
+      newAppointment: {
         date: null,
-        desc: null,
+        vet: null,
+        lieu: null,
+        rapport: null,
       },
+      vetOptions: [],
+      appointmentsList: [],
+      petId: this.$route.params.id,
+      selected: null,
       currentPage: 1,
       perPage: 5,
       totalRows: 0,
       bootstrapTable: {
         selected: [],
-        selectMode: "multi",
+        selectMode: "single",
         fields: [
           {
             key: "date",
@@ -140,13 +196,13 @@ export default {
             tdClass: "text-muted"
           },
           {
-            key: "place",
+            key: "lieu",
             label: "Place",
             sortable: true,
             tdClass: "text-muted"
           },
           {
-            key: "report",
+            key: "rapport",
             label: "Report",
             sortable: false,
             tdClass: "text-muted"
@@ -156,12 +212,31 @@ export default {
       }
     };
   },
+   mounted(){
+     this.getVets();
+     this.getAppointments();
+  },
   methods: {
       hideModal(refname) {
       this.$refs[refname].hide();
     },
-    addNewPet() {
-      console.log("adding item : ", this.newPet);
+    onRowSelected(items) {
+        this.selected = items[0]
+      },
+    addNewAppointment() {
+      this.$Axios.post('/pet/'+this.petId+'/appointment',this.newAppointment)
+      .then(res => {
+        this.newAppoinment = {}
+        this.getAppointments()
+        this.hideModal('modalAppointment')
+        this.$notify("success", "Appointment", "Appointment added", {
+          duration: 3000,
+          permanent: false
+        });
+      })
+      .catch(e => {
+        console.log(e)
+      })
     },
     onPaginationData(paginationData) {
       this.$refs.pagination.setPaginationData(paginationData);
@@ -176,6 +251,81 @@ export default {
               place: 'Zahra',
               report: '',
           }];
+    },
+    getVets(){
+      this.$Axios.get('/getUsers')
+      .then(res => {
+        this.vetOptions= []
+        res.data.forEach(user => {
+          if(user.role == 'vet'){
+            let option = {
+              value: user._id,
+              text: user.name + " " + user.surname,
+            }
+            this.vetOptions.push(option)
+          }
+        })
+      })
+      .catch(e => {
+        console.log(e)
+      })
+    },
+     getAppointments(){
+      this.$Axios.get('/pet/'+this.petId+'/appointment')
+      .then(res => {
+        this.appointmentsList= []
+        console.log(res.data)
+        res.data.forEach(appo => {
+          let appointment = {
+              _id: appo._id,
+              lieu: appo.lieu,
+              rapport: appo.rapport,
+              vet: appo.vet,
+              date: appo.date,
+              desc: appo.name,
+              done: appo.done,
+          }
+          this.appointmentsList.push(appointment)
+        })
+      })
+      .catch(e => {
+        console.log(e)
+      })
+    },
+    confirmAppointment(id){
+      this.$Axios.put('/pet/'+this.petId+'/appointment/' + id,{done: true})
+        .then(res => {
+          this.getAppointments()
+          this.$notify("success", "Appointment", "Appointment confimed", {
+          duration: 3000,
+          permanent: false
+        });
+        })
+        .catch(e => console.log(e))
+    },
+    updateAppointment(){
+      this.$Axios.put('/pet/'+this.petId+'/appointment/' + this.selected._id,this.selected)
+        .then(res => {
+          this.getAppointments()
+          
+          this.hideModal('modalEditAppointment')
+          this.$notify("success", "Appointment", "Appointment updated", {
+          duration: 3000,
+          permanent: false
+        });
+        })
+        .catch(e => console.log(e))
+    },
+    deleteAppointment(id){
+       this.$Axios.delete('/pet/'+this.petId+'/appointment/' + id)
+        .then(res => {
+          this.getAppointments()
+          this.$notify("success", "Appointment", "Appointment deleted", {
+          duration: 3000,
+          permanent: false
+        });
+        })
+        .catch(e => console.log(e))
     },
   }
 };

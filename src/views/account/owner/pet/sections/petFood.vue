@@ -6,7 +6,7 @@
           <b-row align-v="center" align-h="between">
             <b-col cols="4"><span class="font-weight-bold text-white">Food</span></b-col>
             <b-col cols="1" class="mx-3">
-              <router-link :to="'/owner/pet/1/food'">
+              <router-link :to="'/owner/pet/'+ $route.params.id +'/food'">
               <b-button size="sm"  variant="info">Consult</b-button>
               </router-link>
               </b-col>

@@ -1,6 +1,5 @@
 <template>
 <div id="app-container" :class="getMenuType">
-    <top-nav />
     <sidebar />
     <main>
         <div class="container-fluid">
@@ -13,7 +12,6 @@
 
 <script>
 import Sidebar from '@/containers/Sidebar'
-import TopNav from '@/containers/TopNav'
 import Footer from '@/containers/Footer'
 import {
     mapGetters
@@ -21,7 +19,6 @@ import {
 
 export default {
     components: {
-        'top-nav': TopNav,
         'sidebar': Sidebar,
         'footer-component': Footer
     },

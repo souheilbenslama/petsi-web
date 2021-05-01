@@ -2,13 +2,62 @@
   <div>
       <b-row class="m-2" align-h="between">
           <b-col cols="1">
-                <router-link :to="'/owner/pet/1/all'"
+                <router-link :to="'/owner/pet/'+$route.params.id+'/all'"
           ><b-button size="sm"
             ><i class="iconsminds-left"/></b-button></router-link
         >
           </b-col>
           <b-col cols="4" >
-            <b-button class="float-right" v-b-modal.modalVaccine variant="primary" size="sm">Add Vaccine</b-button>
+            <b-button v-if="selected" class="float-right" v-b-modal.modalEditVaccine variant="secondary" size="sm">Edit Vaccine</b-button>
+                        <b-modal
+                        v-if="selected"
+              id="modalEditVaccine"
+              ref="modalEditVaccine"
+              :title="$t('pages.add-new-pet')"
+              modal-class="modal-right"
+            >
+              <b-form>
+                <b-form-group :label="$t('name')">
+                  <b-form-input v-model="selected.name" />
+                </b-form-group>
+                <b-form-group :label="$t('veterinary')">
+                  <b-form-select
+                    v-model="selected.vet"
+                    :options="vetOptions"
+                  ></b-form-select>
+                </b-form-group>
+                <b-form-group :label="$t('Date')">
+                  <b-form-datepicker
+                    id="minDate"
+                    v-model="selected.date"
+                    size="lg"
+                    today-button
+                    close-button
+                    start-weekday="1"
+                    value-as-date
+                    locale="en-GB"
+                  />
+                </b-form-group>
+                <b-form-group :label="$t('Description')">
+                  <b-form-input v-model="selected.desc" />
+                </b-form-group>
+              </b-form>
+
+              <template slot="modal-footer">
+                <b-button
+                  variant="outline-secondary"
+                  @click="hideModal('modalEditVaccine')"
+                  >{{ $t("pages.cancel") }}</b-button
+                >
+                <b-button
+                  variant="primary"
+                  @click="updateVaccine()"
+                  class="mr-1"
+                  >{{ $t("pages.submit") }}</b-button
+                >
+              </template>
+            </b-modal>
+            <b-button class="float-right mr-2" v-b-modal.modalVaccine variant="primary" size="sm">Add Vaccine</b-button>
             <b-modal
               id="modalVaccine"
               ref="modalVaccine"
@@ -20,7 +69,10 @@
                   <b-form-input v-model="newVaccine.name" />
                 </b-form-group>
                 <b-form-group :label="$t('veterinary')">
-                  <b-form-input v-model="newVaccine.vet" />
+                  <b-form-select
+                    v-model="newVaccine.vet"
+                    :options="vetOptions"
+                  ></b-form-select>
                 </b-form-group>
                 <b-form-group :label="$t('Date')">
                   <b-form-datepicker
@@ -42,12 +94,12 @@
               <template slot="modal-footer">
                 <b-button
                   variant="outline-secondary"
-                  @click="hideModal('modalright')"
+                  @click="hideModal('modalVaccine')"
                   >{{ $t("pages.cancel") }}</b-button
                 >
                 <b-button
                   variant="primary"
-                  @click="addNewPet()"
+                  @click="addNewVaccine()"
                   class="mr-1"
                   >{{ $t("pages.submit") }}</b-button
                 >
@@ -64,19 +116,19 @@
         class="vuetable"
         sort-by="title"
         sort-desc.sync="false"
-        @row-selected="rowSelected"
+        @row-selected="onRowSelected"
         selectable
         :select-mode="bootstrapTable.selectMode"
         :current-page="currentPage"
         selectedVariant="primary"
         :fields="bootstrapTable.fields"
-        :items="dataProvider"
+        :items="vaccinesList"
       >
-        <template #cell(action)="">
-          <b-button variant="success" size="sm">
+        <template #cell(done)="vaccine">
+          <b-button @click="confirmVaccine(vaccine.item._id)" v-if="!vaccine.item.done" variant="success" size="sm">
             Confirmer
           </b-button>
-          <b-button variant="danger" size="sm">
+          <b-button @click="deleteVaccine(vaccine.item._id)"  variant="danger" size="sm">
             Delete
           </b-button>
         </template>
@@ -119,12 +171,16 @@ export default {
         date: null,
         desc: null,
       },
+      vetOptions: [],
+      vaccinesList: [],
+      petId: this.$route.params.id,
       currentPage: 1,
       perPage: 5,
       totalRows: 0,
+      selected: null,
       bootstrapTable: {
         selected: [],
-        selectMode: "multi",
+        selectMode: "single",
         fields: [
           {
             key: "name",
@@ -151,17 +207,41 @@ export default {
             sortable: true,
             tdClass: "text-muted"
           },
-          { key: "action", label: "Action", tdClass: "text-muted" }
+          { key: "done", label: "Action", tdClass: "text-muted" }
         ]
       }
     };
+  },
+  mounted(){
+     this.getVets();
+     this.getVaccines();
+  },
+  computed: {
+    dataProvider(ctx) {
+      return this.vaccinesList
+    },
   },
   methods: {
       hideModal(refname) {
       this.$refs[refname].hide();
     },
-    addNewPet() {
-      console.log("adding item : ", this.newPet);
+    onRowSelected(items) {
+        this.selected = items[0]
+      },
+    addNewVaccine() {
+      this.$Axios.post('/pet/'+this.petId+'/vaccine',this.newVaccine)
+      .then(res => {
+        this.newVaccine = {}
+        this.getVaccines()
+        this.hideModal('modalVaccine')
+        this.$notify("success", "Vaccine", "Vaccine added", {
+          duration: 3000,
+          permanent: false
+        });
+      })
+      .catch(e => {
+        console.log(e)
+      })
     },
     onPaginationData(paginationData) {
       this.$refs.pagination.setPaginationData(paginationData);
@@ -169,13 +249,79 @@ export default {
     onChangePage(page) {
       this.$refs.vuetable.changePage(page);
     },
-    dataProvider(ctx) {
-      return [{
-              name: 'pfizer',
-              vet: 'Hbib',
-              date: '12.12.2020',
-              desc: 'vaccin 1',
-          }];
+    getVets(){
+      this.$Axios.get('/getUsers')
+      .then(res => {
+        this.vetOptions= []
+        res.data.forEach(user => {
+          if(user.role == 'vet'){
+            let option = {
+              value: user._id,
+              text: user.name + " " + user.surname,
+            }
+            this.vetOptions.push(option)
+          }
+        })
+      })
+      .catch(e => {
+        console.log(e)
+      })
+    },
+    getVaccines(){
+      this.$Axios.get('/pet/'+this.petId+'/vaccine')
+      .then(res => {
+        this.vaccinesList= []
+        console.log(res.data)
+        res.data.forEach(vacc => {
+          let vaccine = {
+              _id: vacc._id,
+              name: vacc.name,
+              vet: vacc.vet,
+              date: vacc.date,
+              desc: vacc.name,
+              done: vacc.done,
+          }
+          this.vaccinesList.push(vaccine)
+        })
+      })
+      .catch(e => {
+        console.log(e)
+      })
+    },
+    confirmVaccine(id){
+      this.$Axios.put('/pet/'+this.petId+'/vaccine/' + id,{done: true})
+        .then(res => {
+          this.getVaccines()
+          this.$notify("success", "Vaccine", "Vaccine confimed", {
+          duration: 3000,
+          permanent: false
+        });
+        })
+        .catch(e => console.log(e))
+    },
+    updateVaccine(){
+      this.$Axios.put('/pet/'+this.petId+'/vaccine/' + this.selected._id,this.selected)
+        .then(res => {
+          this.getVaccines()
+          
+          this.hideModal('modalEditVaccine')
+          this.$notify("success", "Vaccine", "Vaccine updated", {
+          duration: 3000,
+          permanent: false
+        });
+        })
+        .catch(e => console.log(e))
+    },
+    deleteVaccine(id){
+       this.$Axios.delete('/pet/'+this.petId+'/vaccine/' + id)
+        .then(res => {
+          this.getVaccines()
+          this.$notify("success", "Vaccine", "Vaccine deleted", {
+          duration: 3000,
+          permanent: false
+        });
+        })
+        .catch(e => console.log(e))
     },
   }
 };

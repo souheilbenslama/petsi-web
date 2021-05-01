@@ -63,14 +63,95 @@
                         <img :alt="currentUser.title" :src="currentUser.img" />
                     </span>
                 </template>
-                <b-dropdown-item>Account</b-dropdown-item>
-                <b-dropdown-item>Features</b-dropdown-item>
-                <b-dropdown-item>History</b-dropdown-item>
-                <b-dropdown-item>Support</b-dropdown-item>
+                <b-dropdown-item v-b-modal.modalEditProfile>Edit account</b-dropdown-item>
+                <b-dropdown-item >Change Password</b-dropdown-item>
                 <b-dropdown-divider />
                 <b-dropdown-item @click="logout">Sign out</b-dropdown-item>
             </b-dropdown>
         </div>
+
+        <b-modal
+              v-if="user"
+              id="modalEditProfile"
+              ref="modalEditProfile"
+              :title="$t('EditPorfile')"
+              modal-class="modal-right"
+            >
+              <b-form>
+        
+
+            <b-form-file
+                   accept="image/jpeg, image/png, image/gif"
+                  v-model="user.avatar"
+                  placeholder="Choose a file or drop it here..."
+                  drop-placeholder="Drop file here..."
+                ></b-form-file>
+            <b-form-group
+              :label="$t('user.firstname')"
+              class="has-float-label mb-4"
+            >
+              <b-form-input
+                type="text"
+                v-model="user.name"
+              />
+            </b-form-group>
+            <b-form-group
+              :label="$t('user.lastname')"
+              class="has-float-label mb-4"
+            >
+              <b-form-input
+                type="text"
+                v-model="user.surname"
+              />
+            </b-form-group>
+            <b-form-group
+              :label="$t('user.address')"
+              class="has-float-label mb-4"
+            >
+              <b-form-input
+                type="text"
+                v-model="user.adress"
+              />
+            </b-form-group>
+            <b-form-group
+              :label="$t('user.telephone')"
+              class="has-float-label mb-4"
+            >
+              <b-form-input
+                type="number"
+                v-model="user.phone"
+              />
+            </b-form-group>
+            <b-form-group
+              :label="$t('user.birthdate')"
+              class="has-float-label mb-4"
+            >
+              <b-form-input
+                type="date"
+                v-model="user.birthday"
+              />
+            </b-form-group>
+            <b-form-group :label="$t('user.gender')" class="has-float-label mb-4">
+              <b-form-select
+                v-model="user.gender"
+                :options="genderOptions"
+              ></b-form-select>
+            </b-form-group>
+          </b-form>
+              <template slot="modal-footer">
+                <b-button
+                  variant="outline-secondary"
+                  @click="hideModal('modalEditProfile')"
+                  >{{ $t("pages.cancel") }}</b-button
+                >
+                <b-button
+                  variant="primary"
+                  @click="updateProfile()"
+                  class="mr-1"
+                  >{{ $t("pages.submit") }}</b-button
+                >
+              </template>
+            </b-modal>
     </div>
 </nav>
 </template>
@@ -78,6 +159,7 @@
 <script>
 import Switches from 'vue-switches'
 import notifications from '../data/notifications'
+import moment from 'moment'
 
 import {
     mapGetters,
@@ -107,6 +189,7 @@ export default {
     },
     data() {
         return {
+            user: null,
             selectedParentMenu: '',
             searchKeyword: '',
             isMobileSearch: false,
@@ -117,12 +200,23 @@ export default {
             localeOptions,
             buyUrl,
             notifications,
-            isDarkActive: false
+            isDarkActive: false,
+            genderOptions: [{
+                text: 'Male',
+                value: 'male'
+            },{
+                text: 'Female',
+                value: 'female'
+            },{
+                text: 'Other',
+                value: 'other'
+            }]
         }
     },
     methods: {
         ...mapMutations(['changeSideMenuStatus', 'changeSideMenuForMobile']),
-        ...mapActions(['setLang', 'signOut']),
+        ...mapActions(['setLang', 'signOut','updateProfile']),
+        moment,
         search() {
             this.$router.push(`${this.searchPath}?search=${this.searchKeyword}`)
             this.searchKeyword = ''
@@ -159,6 +253,10 @@ export default {
                 this.$router.push('/user/login')
             })
         },
+
+        hideModal(refname) {
+            this.$refs[refname].hide();
+            },
 
         toggleFullScreen() {
             const isInFullScreen = this.isInFullScreen()
@@ -201,6 +299,34 @@ export default {
                     document.mozFullScreenElement !== null) ||
                 (document.msFullscreenElement && document.msFullscreenElement !== null)
             )
+        },
+        updateProfile(){
+             let formData = new FormData()
+                formData.append('email', this.user.name);
+                formData.append('name', this.user.name);
+                formData.append('surname', this.user.surname);
+                formData.append('adress', this.user.adress)
+                formData.append('birthday', this.user.birthday)
+                formData.append('gender', this.user.gender)
+                formData.append('phone', this.user.phone)
+                formData.append('avatar', this.user.avatar)
+
+                console.log("adding item : ", formData);
+                console.log(this.user)
+
+                this.$Axios({
+                method: 'put',
+                url: '/profile',
+                data: formData,
+                headers: { 'Content-Type': 'multipart/form-data' },
+                })
+            .then((res) => {
+                console.log(res.data)
+                this.updateProfile({user: res.data})
+            })
+            .catch(e => {
+                console.log(e)
+            })
         }
     },
     computed: {
@@ -217,6 +343,10 @@ export default {
     created() {
         const color = this.getThemeColor()
         this.isDarkActive = color.indexOf('dark') > -1
+        console.log(this.currentUser)
+        this.user = this.currentUser.user
+        this.user.avatar = null;
+        this.user.birthday = moment(this.user.birthday).format('YYYY-MM-DD')
     },
     watch: {
         '$i18n.locale'(to, from) {

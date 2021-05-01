@@ -6,7 +6,7 @@
           <b-row align-v="center" align-h="between">
             <b-col cols="4"><span class="font-weight-bold text-white">Appointements</span></b-col>
             <b-col cols="1" class="mx-3">
-              <router-link :to="'/owner/pet/1/appointements'">
+              <router-link :to="'/owner/pet/'+ $route.params.id +'/appointements'">
                 <b-button size="sm"  variant="info">Consult</b-button>
               </router-link>
               </b-col>
@@ -21,13 +21,12 @@
         class="vuetable"
         sort-by="title"
         sort-desc.sync="false"
-        @row-selected="rowSelected"
         selectable
         :select-mode="bootstrapTable.selectMode"
         :current-page="currentPage"
         selectedVariant="primary"
         :fields="bootstrapTable.fields"
-        :items="dataProvider"
+        :items="appointmentsList"
       ></b-table>
             </b-card>
         </b-card-body>
@@ -44,18 +43,22 @@ export default {
   },
   data() {
     return {
-      newVaccine: {
-        name: null,
-        vet: null,
+      newAppointment: {
         date: null,
-        desc: null,
+        vet: null,
+        lieu: null,
+        rapport: null,
       },
+      vetOptions: [],
+      appointmentsList: [],
+      petId: this.$route.params.id,
+      selected: null,
       currentPage: 1,
       perPage: 5,
       totalRows: 0,
       bootstrapTable: {
         selected: [],
-        selectMode: "multi",
+        selectMode: "single",
         fields: [
           {
             key: "date",
@@ -71,41 +74,57 @@ export default {
             tdClass: "text-muted"
           },
           {
-            key: "place",
+            key: "lieu",
             label: "Place",
             sortable: true,
             tdClass: "text-muted"
           },
           {
-            key: "report",
+            key: "rapport",
             label: "Report",
             sortable: false,
             tdClass: "text-muted"
-          },
+          }
         ]
       }
     };
+  },
+  mounted(){
+     this.getAppointments();
   },
   methods: {
       hideModal(refname) {
       this.$refs[refname].hide();
     },
-    addNewPet() {
-      console.log("adding item : ", this.newPet);
-    },
+    onRowSelected(items) {
+        this.selected = items[0]
+      },
     onPaginationData(paginationData) {
       this.$refs.pagination.setPaginationData(paginationData);
     },
     onChangePage(page) {
       this.$refs.vuetable.changePage(page);
     },
-    dataProvider(ctx) {
-      return [{
-              date: '12.12.2020',
-              vet: 'Hbib',
-              place: 'Zahra',
-              report: '',
-          }];
+    getAppointments(){
+      this.$Axios.get('/pet/'+this.petId+'/appointment')
+      .then(res => {
+        this.appointmentsList= []
+        res.data.forEach(appo => {
+          let appointment = {
+              _id: appo._id,
+              lieu: appo.lieu,
+              rapport: appo.rapport,
+              vet: appo.vet,
+              date: appo.date,
+              desc: appo.name,
+              done: appo.done,
+          }
+          this.appointmentsList.push(appointment)
+        })
+      })
+      .catch(e => {
+        console.log(e)
+      })
     },
   }
 };

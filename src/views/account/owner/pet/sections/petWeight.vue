@@ -21,6 +21,7 @@
               <b-form-group :label="'Today\'s weight'">
                 <b-form-input v-model="todayWeight" />
               </b-form-group>
+               <b-button class="mb-2" variant="success" size="sm">confirm</b-button>
               <gradient-card>
                 <i class="iconsminds-scale text-white display-1"/>
                 <p class="lead text-white">
@@ -30,40 +31,13 @@
               </gradient-card>
             </b-col>
             <b-col cols="6">
-              <b-card class="dashboard-filled-line-chart" no-body>
-                <b-card-body>
-                  <div class="float-left float-none-xs">
-                    <div class="d-inline-block">
-                      <h5 class="d-inline">
-                        {{ $t("dashboards.conversion-rates") }}
-                      </h5>
-                      <span class="text-muted text-small d-block">{{
-                        $t("dashboards.per-session")
-                      }}</span>
+              <b-colxx xxs="12" class="mb-4">
+                <b-card :title="$t('dashboards.sales')">
+                    <div class="dashboard-line-chart">
+                        <line-shadow-chart :data="lineChartData" :height="285" />
                     </div>
-                  </div>
-                  <b-dropdown
-                    id="ddown5"
-                    :text="$t('dashboards.this-week')"
-                    size="xs"
-                    variant="outline-secondary"
-                    class="float-right float-none-xs mt-2"
-                  >
-                    <b-dropdown-item>{{
-                      $t("dashboards.last-week")
-                    }}</b-dropdown-item>
-                    <b-dropdown-item>{{
-                      $t("dashboards.this-month")
-                    }}</b-dropdown-item>
-                  </b-dropdown>
-                </b-card-body>
-                <div class="chart card-body pt-0">
-                  <area-shadow-chart
-                    :data="conversionChartData"
-                    :height="195"
-                  />
-                </div>
-              </b-card>
+                </b-card>
+            </b-colxx>
             </b-col>
           </b-row>
         </b-card-body>
@@ -75,18 +49,39 @@
 <script>
 import GradientCard from "@/components/Cards/GradientCard";
 import AreaShadowChart from "@/components/Charts/AreaShadow";
+import LineShadowChart from '@/components/Charts/LineShadow'
 
-import { conversionChartData } from "@/data/charts";
+import { lineChartData } from "@/data/charts.js";
 
 export default {
   components: {
     GradientCard,
     AreaShadowChart,
+    LineShadowChart
   },
-  data() {
-    return {
-      todayWeight,
-      conversionChartData,
+  data: () => ({
+      todayWeight: null,
+      lineChartData,
+      stat: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [
+          {
+            label: '',
+            data: [65, 60, 68, 60, 58, 63, 60],
+            borderColor: 'blue',
+            pointBackgroundColor: 'blue',
+            pointBorderColor: 'blue',
+            pointHoverBackgroundColor: 'blue',
+            pointHoverBorderColor: 'blue',
+            pointRadius: 4,
+            pointBorderWidth: 2,
+            pointHoverRadius: 5,
+            fill: true,
+            borderWidth: 2,
+            backgroundColor: 'blue'
+          }
+        ]
+      },
       text: `
           Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry
           richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor
@@ -97,7 +92,6 @@ export default {
           vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic
           synth nesciunt you probably haven't heard of them accusamus labore VHS.
         `
-    };
-  }
+  }),
 };
 </script>

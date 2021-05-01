@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import createPersistedState from 'vuex-persistedstate'
 
 import app from '../main'
 import menu from './modules/menu'
@@ -30,5 +31,6 @@ export default new Vuex.Store({
     chat,
     todo,
     survey
-  }
+  },
+  plugins: [createPersistedState()],
 })

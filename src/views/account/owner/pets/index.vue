@@ -10,12 +10,12 @@
               variant="primary"
               size="lg"
               class="top-right-button"
-              >{{ $t("pages.add-new") }}</b-button
+              >{{ $t("Add new pet") }}</b-button
             >
             <b-modal
               id="modalright"
               ref="modalright"
-              :title="$t('pages.add-new-pet')"
+              :title="$t('Add new Pet')"
               modal-class="modal-right"
             >
               <b-form>
@@ -145,8 +145,6 @@
             <image-list-item
               :key="item.id"
               :data="item"
-              :selected-items="selectedItems"
-              @toggle-item="toggleItem"
               v-contextmenu:contextmenu
             />
           </b-colxx>
@@ -192,10 +190,10 @@ import "vue-select/dist/vue-select.css";
 import axios from "axios";
 
 import ImageListItem from "@/components/Listing/ImageListItem";
-import { apiUrl } from "@/constants/config";
 
 
 import Datepicker from 'vuejs-datepicker';
+import { mapGetters } from "vuex";
 
 export default {
   components: {
@@ -208,32 +206,32 @@ export default {
     return {
       file1: null,
       isLoad: false,
-      apiBase: apiUrl + "/cakes/fordatatable",
+      apiUrl: process.env.VUE_APP_API_URL,
       displayMode: "image",
       sort: {
-        column: "title",
-        label: "Product Name"
+        column: "name",
+        label: "Name"
       },
       sortOptions: [
         {
-          column: "title",
-          label: "Product Name"
+          column: "name",
+          label: "Name"
         },
         {
-          column: "category",
-          label: "Category"
+          column: "birthday",
+          label: "Birthday"
         },
         {
-          column: "status",
-          label: "Status"
+          column: "breed",
+          label: "Breed"
         }
       ],
       page: 1,
       perPage: 4,
       search: "",
-      from: 0,
-      to: 0,
-      total: 0,
+      from: 1,
+      to: 3,
+      total: 4,
       lastPage: 0,
       items: [],
       pageSizes: [4, 8, 12],
@@ -275,7 +273,33 @@ export default {
   methods: {
     loadItems() {
       this.isLoad = false;
-      axios
+
+      this.total = this.items.length;
+      this.isLoad = true;
+ 
+      this.items = []
+      this.$Axios.get('/myPets')
+       .then(res => {
+         res.data.forEach(pet => {
+           let newPet = {
+              id: pet._id,
+              image: this.apiUrl + '/' + pet.photo,
+              name: pet.name,
+              breed: pet.breed,
+              birthday: pet.birthday,
+              weight: pet.weight + ' Kg',
+              gender: pet.sex,
+           }
+
+           this.items.push(newPet)
+         })
+       })
+       .catch(e => {
+         console.log(e)
+       })
+
+
+      /*axios
         .get(this.apiUrl)
         .then(response => {
             console.log(response.data)
@@ -291,7 +315,7 @@ export default {
           this.selectedItems = [];
           this.lastPage = res.last_page;
           this.isLoad = true;
-        });
+        });*/
     },
     hideModal(refname) {
       this.$refs[refname].hide();
@@ -306,7 +330,33 @@ export default {
       this.sort = sort;
     },
     addNewPet() {
-      console.log("adding item : ", this.newPet);
+
+      
+
+      let formData = new FormData()
+        formData.append('name', this.newPet.name)
+        formData.append('photo', this.newPet.image)
+        formData.append('breed', this.newPet.breed)
+        formData.append('birthday', this.newPet.birthday)
+        formData.append('sex', this.newPet.gender)
+        formData.append('weight', this.newPet.weight)
+        formData.append('owner', this.currentUser._id)
+
+        console.log("adding item : ", formData);
+
+        this.$Axios({
+          method: 'post',
+          url: '/addPet',
+          data: formData,
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+      .then((res) => {
+          console.log(res.data)
+          this.loadItems();
+      })
+      .catch(e => {
+          console.log(e)
+      })
     },
     selectAll(isToggle) {
       if (this.selectedItems.length >= this.items.length) {
@@ -334,32 +384,6 @@ export default {
         }
       }
       return -1;
-    },
-    toggleItem(event, itemId) {
-      if (event.shiftKey && this.selectedItems.length > 0) {
-        let itemsForToggle = this.items;
-        var start = this.getIndex(itemId, itemsForToggle, "id");
-        var end = this.getIndex(
-          this.selectedItems[this.selectedItems.length - 1],
-          itemsForToggle,
-          "id"
-        );
-        itemsForToggle = itemsForToggle.slice(
-          Math.min(start, end),
-          Math.max(start, end) + 1
-        );
-        this.selectedItems.push(
-          ...itemsForToggle.map(item => {
-            return item.id;
-          })
-        );
-      } else {
-        if (this.selectedItems.includes(itemId)) {
-          this.selectedItems = this.selectedItems.filter(x => x !== itemId);
-        } else {
-          this.selectedItems.push(itemId);
-        }
-      }
     },
     handleContextmenu(vnode) {
       if (!this.selectedItems.includes(vnode.key)) {
@@ -389,6 +413,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters(["currentUser", "processing", "loginError"]),
     isSelectedAll() {
       return this.selectedItems.length >= this.items.length;
     },
@@ -403,11 +428,18 @@ export default {
     }
   },
   watch: {
-    search() {
-      this.page = 1;
-    },
-    apiUrl() {
+    search(val) {
       this.loadItems();
+      this.items = this.items.filter(pet => pet.name.includes(val))
+      console.log(this.items)
+    },
+    sort(val) {
+      console.log(val)
+      this.loadItems();
+      this.items = this.items.sort(function(a,b) {
+        return a[val.column] > b[val.column];
+      })
+      console.log(this.items)
     }
   },
   mounted() {

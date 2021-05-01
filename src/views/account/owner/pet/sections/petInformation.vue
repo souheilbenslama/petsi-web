@@ -9,12 +9,12 @@
 
         <dt class="col-md-3 text-primary">Gender :</dt>
         <dd class="col-md-9">
-          {{ pet.sexe }}
+          {{ pet.gender }}
         </dd>
 
         <dt class="col-md-3 text-primary">Birthday :</dt>
         <dd class="col-md-9">
-          {{ pet.birthday }}
+          {{convertMoment(pet.birthday, 'DD-MM-YYYY') }}
         </dd>
 
         <dt class="col-md-3 text-primary">Breed :</dt>
@@ -86,7 +86,7 @@
             </b-modal>
 
 
-        <router-link :to="'/owner/pet/1/schedule'"
+        <router-link :to="'/owner/pet/'+ $route.params.id +'/schedule'"
           ><b-button variant="secondary" size="md"
             >Schedule</b-button
           ></router-link
@@ -96,6 +96,7 @@
   </b-card>
 </template>
 <script>
+import moment from 'moment'
 export default {
   props: ["pet"],
   data: () => ({
@@ -106,9 +107,23 @@ export default {
         birthday: null,
         weight: null,
         gender: null,
-      }
+      },
+      statuses: [
+        {
+          text: "Male",
+          value: "Male"
+        },
+        {
+          text: "Female",
+          value: "Female"
+        }
+      ],
   }),
   methods: {
+    moment,
+    convertMoment(value,format) {
+        return moment(value).format(format)
+    },
     hideModal(refname) {
       this.$refs[refname].hide();
     },

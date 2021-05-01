@@ -1,7 +1,14 @@
 /* eslint-disable vue/no-unused-components */
 <template>
   <div>
-
+    <b-row class="m-2" align-h="between">
+          <b-col cols="1">
+                <router-link :to="'/owner/pet/'+$route.params.id+'/all'"
+          ><b-button size="sm"
+            ><i class="iconsminds-left"/></b-button></router-link
+        >
+          </b-col>
+    </b-row>
     <b-row>
       <b-colxx class="mb-4">
         <b-card :title="$t('Schedule')">
@@ -33,7 +40,7 @@
 </template>
 
 <script>
-
+import moment from 'moment'
 import {
   CalendarView,
   CalendarViewHeader,
@@ -52,38 +59,15 @@ export default {
     return {
       calendar: {
         showDate: this.thisMonth(1),
-        events: [
-          {
-            id: "e2",
-            startDate: this.thisMonth(15),
-            title: "Meeting",
-            classes: "secondary"
-          },
-          {
-            id: "e3",
-            startDate: this.thisMonth(8, 9, 25),
-            endDate: this.thisMonth(9, 16, 30),
-            title: "Sales",
-            classes: "primary"
-          },
-          {
-            id: "e5",
-            startDate: this.thisMonth(5),
-            endDate: this.thisMonth(12),
-            title: "Tax Days",
-            classes: "secondary"
-          },
-          {
-            id: "e10",
-            startDate: this.thisMonth(27),
-            title: "My Birthday!"
-          }
-        ]
+        events: []
       },
     };
   },
-
+  mounted() {
+     this.getEvents()
+  },
   methods: {
+    moment,
     refreshButtonClick() {
       console.log("refreshButtonClick");
     },
@@ -113,7 +97,74 @@ export default {
     },
     onChangePage(page) {
       this.$refs.vuetable.changePage(page);
-    }
+    },
+    getEvents(){
+      let id = this.$route.params.id
+        this.$Axios.get('/pet/' + id)
+       .then(res => {
+           let pet = res.data;
+           this.pet = {
+              id: pet._id,
+              image: this.apiUrl + '/' + pet.photo,
+              name: pet.name,
+              breed: pet.breed,
+              birthday: pet.birthday,
+              weight: pet.weight + ' Kg',
+              gender: pet.sex,
+              appointment: pet.appointment,
+              bath: pet.appointment,
+              food: pet.food,
+              treatment: pet.treatment,
+              vaccine: pet.vaccine,
+            }
+          pet.appointment.forEach(appo => {
+              console.log(appo)
+              let event = {
+                id: appo._id,
+                startDate: this.thisMonth(moment(appo.date).format("DD"), moment(appo.date).format("HH"), moment(appo.date).format("mm")),
+                title: "Appointment",
+                classes: "primary"
+              }
+              console.log(event)
+              this.calendar.events.push(event)
+          })
+
+          pet.bath.forEach(bath => {
+              console.log(bath)
+              let event = {
+                id: bath._id,
+                startDate: this.thisMonth(moment(bath.date).format("DD"), moment(bath.date).format("HH"), moment(bath.date).format("mm")),
+                title: "Bath",
+                classes: "success"
+              }
+              console.log(event)
+              this.calendar.events.push(event)
+          })
+
+          pet.food.forEach(food => {
+              let event = {
+                id: food._id,
+                startDate: this.thisMonth(moment(food.date).format("DD"), moment(food.date).format("HH"), moment(food.date).format("mm")),
+                title: "Food",
+                classes: "error"
+              }
+              this.calendar.events.push(event)
+          })
+
+          pet.vaccine.forEach(vaccine => {
+              let event = {
+                id: vaccine._id,
+                startDate: this.thisMonth(moment(vaccine.date).format("DD"), moment(vaccine.date).format("HH"), moment(vaccine.date).format("mm")),
+                title: "Vaccine",
+                classes: "secondary"
+              }
+              this.calendar.events.push(event)
+          })
+       })
+       .catch(e => {
+         console.log(e)
+       })
+    },
   }
 };
 </script>
