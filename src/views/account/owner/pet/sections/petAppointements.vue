@@ -36,6 +36,7 @@
 </template>
 <script>
 import VuetablePaginationBootstrap from "@/components/Common/VuetablePaginationBootstrap";
+import moment from 'moment'
 
 export default {
   components: {
@@ -93,6 +94,7 @@ export default {
      this.getAppointments();
   },
   methods: {
+    moment,
       hideModal(refname) {
       this.$refs[refname].hide();
     },
@@ -114,8 +116,8 @@ export default {
               _id: appo._id,
               lieu: appo.lieu,
               rapport: appo.rapport,
-              vet: appo.vet,
-              date: appo.date,
+              vet: appo.vet.name + ' ' + appo.vet.surname,
+              date: this.moment(appo.date).format('DD-MM-YYYY'),
               desc: appo.name,
               done: appo.done,
           }

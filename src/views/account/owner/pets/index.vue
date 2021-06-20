@@ -33,6 +33,12 @@
                 <b-form-group :label="$t('breed')">
                   <b-form-input v-model="newPet.breed" />
                 </b-form-group>
+                <b-form-group :label="$t('type')" class="has-float-label mb-4">
+                  <b-form-select
+                    v-model="newPet.type"
+                    :options="types"
+                  ></b-form-select>
+                </b-form-group>
                 <b-form-group :label="$t('birthday')">
                   <b-form-datepicker
                     id="minDate"
@@ -138,7 +144,7 @@
             lg="4"
             xl="3"
             class="mb-5"
-            v-for="(item, index) in items"
+            v-for="(item, index) in filtredItems"
             :key="index"
             :id="item.id"
           >
@@ -208,6 +214,15 @@ export default {
       isLoad: false,
       apiUrl: process.env.VUE_APP_API_URL,
       displayMode: "image",
+      types: [
+        { value: "dog", text: "Dog" },
+        { value: "cat", text: "Cat" },
+        { value: "horse", text: "Horse" },
+        { value: "rabbit", text: "Rabbit" },
+        { value: "sheep", text: "Sheep" },
+        { value: "parrot", text: "Parrot" },
+        { value: "goat", text: "Goat"},
+      ],
       sort: {
         column: "name",
         label: "Name"
@@ -264,6 +279,7 @@ export default {
         image: null,
         name: null,
         breed: null,
+        type: null,
         birthday: null,
         weight: null,
         gender: null,
@@ -290,7 +306,7 @@ export default {
               weight: pet.weight + ' Kg',
               gender: pet.sex,
            }
-
+           console.log(`Pet ${newPet}`)
            this.items.push(newPet)
          })
        })
@@ -330,13 +346,27 @@ export default {
       this.sort = sort;
     },
     addNewPet() {
+      if(!this.newPet.name || !this.newPet.breed ||!this.newPet.birthday || !this.newPet.gender || !this.newPet.weight) {
+            this.$notify("error", "Add Pet", "Fill all fields", {
+                        duration: 3000,
+                        permanent: false
+                        });
+            return
+      }
 
-      
+      if(this.newPet.birthday > Date.now()) {
+            this.$notify("error", "Add Pet", "Date is invalid", {
+                        duration: 3000,
+                        permanent: false
+                        });
+            return
+      }
 
       let formData = new FormData()
         formData.append('name', this.newPet.name)
         formData.append('photo', this.newPet.image)
         formData.append('breed', this.newPet.breed)
+        formData.append('type', this.newPet.type)
         formData.append('birthday', this.newPet.birthday)
         formData.append('sex', this.newPet.gender)
         formData.append('weight', this.newPet.weight)
@@ -352,6 +382,15 @@ export default {
         })
       .then((res) => {
           console.log(res.data)
+          this.newPet= {
+        image: null,
+        name: null,
+        breed: null,
+        type: null,
+        birthday: null,
+        weight: null,
+        gender: null,
+      }
           this.loadItems();
       })
       .catch(e => {
@@ -423,23 +462,20 @@ export default {
         this.selectedItems.length < this.items.length
       );
     },
-    apiUrl() {
-      return `${this.apiBase}?sort=${this.sort.column}&page=${this.page}&per_page=${this.perPage}&search=${this.search}`;
-    }
-  },
-  watch: {
-    search(val) {
-      this.loadItems();
-      this.items = this.items.filter(pet => pet.name.includes(val))
-      console.log(this.items)
-    },
-    sort(val) {
-      console.log(val)
-      this.loadItems();
-      this.items = this.items.sort(function(a,b) {
-        return a[val.column] > b[val.column];
+    filtredItems() {
+      let Items = this.items
+      
+      if(this.search){
+          Items = Items.filter(pet => pet.name.includes(this.search))
+      }
+      
+      let col = this.sort.column
+      Items = Items.sort(function(a,b) {
+        if(a[col] < b[col]) { return -1; }
+        if(a[col] > b[col]) { return 1; }
+        return 0;
       })
-      console.log(this.items)
+      return Items
     }
   },
   mounted() {

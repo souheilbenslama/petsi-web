@@ -32,16 +32,20 @@ export default {
         let id = this.$route.params.id
         this.$Axios.get('/pet/' + id)
        .then(res => {
-           let pet = res.data;
-           console.log(pet)
+           let data = res.data;
+           console.log(`Looking for food`)
+           console.log(data.bath)
            this.pet = {
-              id: pet._id,
-              image: this.apiUrl + '/' + pet.photo,
-              name: pet.name,
-              breed: pet.breed,
-              birthday: pet.birthday,
-              weight: pet.weight + ' Kg',
-              gender: pet.sex,
+              id: data.pet._id,
+              image: this.apiUrl + '/' + data.pet.photo,
+              name: data.pet.name,
+              breed: data.pet.breed,
+              birthday: data.pet.birthday,
+              weight: data.pet.weight + ' Kg',
+              gender: data.pet.sex,
+              nextFood: data.food,
+              lastBath: data.bath.date,
+              status: data.pet.status
          }
        })
        .catch(e => {

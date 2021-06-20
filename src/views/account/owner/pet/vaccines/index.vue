@@ -13,7 +13,7 @@
                         v-if="selected"
               id="modalEditVaccine"
               ref="modalEditVaccine"
-              :title="$t('pages.add-new-pet')"
+              :title="$t('Vaccines')"
               modal-class="modal-right"
             >
               <b-form>
@@ -61,7 +61,7 @@
             <b-modal
               id="modalVaccine"
               ref="modalVaccine"
-              :title="$t('pages.add-new-pet')"
+              :title="$t('Vaccines')"
               modal-class="modal-right"
             >
               <b-form>
@@ -158,6 +158,7 @@
 </template>
 <script>
 import VuetablePaginationBootstrap from "@/components/Common/VuetablePaginationBootstrap";
+import moment from 'moment'
 
 export default {
   components: {
@@ -190,13 +191,13 @@ export default {
             tdClass: "list-item-heading"
           },
           {
-            key: "vet",
+            key: "vetName",
             label: "Veterinary",
             sortable: true,
             tdClass: "text-muted"
           },
           {
-            key: "date",
+            key: "dateForm",
             label: "Date",
             sortable: true,
             tdClass: "text-muted"
@@ -222,6 +223,7 @@ export default {
     },
   },
   methods: {
+     moment,
       hideModal(refname) {
       this.$refs[refname].hide();
     },
@@ -229,6 +231,17 @@ export default {
         this.selected = items[0]
       },
     addNewVaccine() {
+      let v = this.newVaccine
+
+      if(!v.name || !v.vet || !v.date ) {
+        this.$notify("error", "Update Pet", "Fill all fields", {
+                        duration: 3000,
+                        permanent: false
+                        });
+        return
+      }
+     
+
       this.$Axios.post('/pet/'+this.petId+'/vaccine',this.newVaccine)
       .then(res => {
         this.newVaccine = {}
@@ -252,9 +265,10 @@ export default {
     getVets(){
       this.$Axios.get('/getUsers')
       .then(res => {
+        console.log(res.data)
         this.vetOptions= []
         res.data.forEach(user => {
-          if(user.role == 'vet'){
+          if(user.role == 'Veterinary'){
             let option = {
               value: user._id,
               text: user.name + " " + user.surname,
@@ -276,8 +290,10 @@ export default {
           let vaccine = {
               _id: vacc._id,
               name: vacc.name,
-              vet: vacc.vet,
+              vet: vacc.vet._id,
+              vetName: vacc.vet.name + ' ' + vacc.vet.surname,
               date: vacc.date,
+              dateForm: this.moment(vacc.date).format('DD-MM-YYYY'),
               desc: vacc.name,
               done: vacc.done,
           }
@@ -289,6 +305,7 @@ export default {
       })
     },
     confirmVaccine(id){
+      if(!confirm('are you sure ?')) return
       this.$Axios.put('/pet/'+this.petId+'/vaccine/' + id,{done: true})
         .then(res => {
           this.getVaccines()
@@ -300,6 +317,15 @@ export default {
         .catch(e => console.log(e))
     },
     updateVaccine(){
+      let v = this.selected
+      if(!v.name || !v.vet || !v.date ) {
+        this.$notify("error", "Update Pet", "Fill all fields", {
+                        duration: 3000,
+                        permanent: false
+                        });
+        return
+      }
+
       this.$Axios.put('/pet/'+this.petId+'/vaccine/' + this.selected._id,this.selected)
         .then(res => {
           this.getVaccines()
@@ -313,6 +339,7 @@ export default {
         .catch(e => console.log(e))
     },
     deleteVaccine(id){
+      if(!confirm('are you sure ?')) return
        this.$Axios.delete('/pet/'+this.petId+'/vaccine/' + id)
         .then(res => {
           this.getVaccines()

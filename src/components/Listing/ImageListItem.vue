@@ -1,7 +1,7 @@
 <template>
 <b-card :class="{'active' : true}" no-body>
     <div class="position-relative">
-            <img :src="data.image" class="card-img-top" :alt="data.title" />
+        <img :src="data.image" class="card-img-top card-img image" :alt="data.title" />
         <b-badge pill v-if="data.gender == 'Male'" :variant="'secondary'" class="position-absolute badge-top-left">{{ data.gender }}</b-badge>
         <b-badge pill v-if="data.gender == 'Female'" :variant="'danger'" class="position-absolute badge-top-left">{{ data.gender }}</b-badge>
     </div>
@@ -27,6 +27,7 @@
                     </router-link>
                 <b-button
                     variant="danger"
+                    v-b-popover.hover.top="'Popover!'"
                     size="xs"
                     class="top-right-button"
                     @click="deletePet()"
@@ -49,6 +50,8 @@ export default {
             return this.moment(value).format(format)
         },
         deletePet: function() {
+
+            if(!confirm('are you sure ?')) return
             this.$Axios.delete('/pet/' + this.data.id)
             .then(res => {
                 console.log(res.data)
@@ -61,3 +64,9 @@ export default {
     }
 }
 </script>
+<style lang="scss" scoped>
+.card-img-top {
+    height: 220px;
+    object-fit: cover;
+}
+</style>

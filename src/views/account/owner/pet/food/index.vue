@@ -130,6 +130,7 @@
 <script>
 import VuetablePaginationBootstrap from "@/components/Common/VuetablePaginationBootstrap";
 import datetime from 'vuejs-datetimepicker';
+import moment from 'moment'
 
 export default {
   components: {
@@ -168,7 +169,7 @@ export default {
             tdClass: "text-muted"
           },
           {
-            key: "date",
+            key: "dateForm",
             label: "Date/Time",
             sortable: true,
             tdClass: "text-muted"
@@ -182,6 +183,7 @@ export default {
      this.getFoods()
   },
   methods: {
+    moment,
       hideModal(refname) {
       this.$refs[refname].hide();
     },
@@ -189,6 +191,16 @@ export default {
         this.selected = items[0]
       },
     addNewFood() {
+      let f = this.newFood 
+
+      if(!f.name || !f.quantity || !f.date) {
+        this.$notify("error", "Add Food", "Fill all fields", {
+                        duration: 3000,
+                        permanent: false
+                        });
+            return
+      }
+
       this.$Axios.post('/pet/'+this.petId+'/food',this.newFood)
       .then(res => {
         this.newFood = {}
@@ -215,6 +227,7 @@ export default {
         this.foodsList= []
         console.log(res.data)
         res.data.forEach(food => {
+          food.dateForm = this.moment(food.date).format("DD-MM-YYYY HH:mm")
           this.foodsList.push(food)
         })
       })
@@ -223,6 +236,7 @@ export default {
       })
     },
     confirmFood(id){
+      if(!confirm('are you sure ?')) return
       this.$Axios.put('/pet/'+this.petId+'/food/' + id,{done: true})
         .then(res => {
           this.getFoods()
@@ -234,6 +248,15 @@ export default {
         .catch(e => console.log(e))
     },
     updateFood(){
+      let f = this.selected
+      if(!f.name || !f.quantity || !f.date) {
+        this.$notify("error", "Add Food", "Fill all fields", {
+                        duration: 3000,
+                        permanent: false
+                        });
+            return
+      }
+
       this.$Axios.put('/pet/'+this.petId+'/food/' + this.selected._id,this.selected)
         .then(res => {
           this.getFoods()
@@ -247,6 +270,7 @@ export default {
         .catch(e => console.log(e))
     },
     deleteFood(id){
+      if(!confirm('are you sure ?')) return
        this.$Axios.delete('/pet/'+this.petId+'/food/' + id)
         .then(res => {
           this.getFoods()

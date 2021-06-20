@@ -1,98 +1,59 @@
 <template>
 <b-row>
     <b-colxx xxs="12">
-        <h1>Sarah Kortney</h1>
-        <div class="top-right-button-container">
-            <b-dropdown id="ddown5" :text="$t('pages.actions')" size="lg" variant="outline-primary" class="top-right-button top-right-button-single" no-fade="true">
-                <b-dropdown-item>{{ $t('dashboards.last-week') }}</b-dropdown-item>
-                <b-dropdown-item>{{ $t('dashboards.this-month') }}</b-dropdown-item>
-            </b-dropdown>
-        </div>
         <piaf-breadcrumb />
         <b-tabs nav-class="separator-tabs ml-0 mb-5" content-class="tab-content" :no-fade="true">
             <b-tab :title="$t('pages.profile')">
-                <b-row>
-                    <b-colxx xxs="12" class="mb-5">
-                        <b-card>
-                            <single-lightbox thumb="/assets/img/social-header.jpg" large="/assets/img/social-header.jpg" class-name="social-header card-img" />
-                        </b-card>
-                    </b-colxx>
+                <b-row class="mt-5 pt-5">
                     <b-colxx xxs="12" lg="5" xl="4" class="col-left">
-                        <single-lightbox thumb="/assets/img/profile-pic-l.jpg" large="/assets/img/profile-pic.jpg" class-name="img-thumbnail card-img social-profile-img" />
+                        <single-lightbox :thumb="apiUrl + '/' + currentUser.img" :large="apiUrl + '/' + currentUser.img" class-name="img-thumbnail card-img social-profile-img" />
                         <b-card class="mb-4" no-body>
                             <b-card-body>
                                 <div class="text-center pt-4">
-                                    <p class="list-item-heading pt-2">Sarah Cortney</p>
+                                    <p class="list-item-heading pt-2">{{currentUser.title}}</p>
                                 </div>
-                                <p class="mb-3">
-                                    I’m a web developer. I spend my whole day, practically every day, experimenting with HTML, CSS, and JavaScript; dabbling with Python and Ruby; and inhaling a wide variety of potentially useless information through a few hundred RSS feeds. I build websites that delight and inform. I do it well.
-                                </p>
+                                <p class="text-muted text-small mb-2">{{$t('email')}}</p>
+                                <p class="mb-3">{{currentUser.user.email}}</p>
+                                <p class="text-muted text-small mb-2">{{$t('Birthday')}}</p>
+                                <p class="mb-3">{{currentUser.user.birthday}}</p>
                                 <p class="text-muted text-small mb-2">{{$t('pages.location')}}</p>
-                                <p class="mb-3">Nairobi, Kenya</p>
-                                <p class="text-muted text-small mb-2">{{$t('pages.responsibilities')}}</p>
+                                <p class="mb-3">{{currentUser.user.adress}}</p>
+                                <p class="text-muted text-small mb-2">{{$t('pages.phone')}}</p>
                                 <p class="mb-3">
-                                    <b-badge variant="outline-secondary" class="mb-1 mr-1" pill>FRONTEND</b-badge>
-                                    <b-badge variant="outline-secondary" class="mb-1 mr-1" pill>JAVASCRIPT</b-badge>
-                                    <b-badge variant="outline-secondary" class="mb-1 mr-1" pill>SECURITY</b-badge>
-                                    <b-badge variant="outline-secondary" class="mb-1 mr-1" pill>DESIGN</b-badge>
+                                    {{currentUser.user.phone}}
                                 </p>
-                                <p class="text-muted text-small mb-2">{{$t('menu.contact')}}</p>
-                                <div class="social-icons">
-                                    <ul class="list-unstyled list-inline">
-                                        <li class="list-inline-item">
-                                            <router-link to="#"><i class="simple-icon-social-facebook"></i></router-link>
-                                        </li>
-                                        <li class="list-inline-item">
-                                            <router-link to="#"><i class="simple-icon-social-twitter"></i></router-link>
-                                        </li>
-                                        <li class="list-inline-item">
-                                            <router-link to="#"><i class="simple-icon-social-instagram"></i></router-link>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </b-card-body>
-                        </b-card>
 
-                        <b-card class="mb-4" no-body>
-                            <b-card-body>
-                                <b-card-title>{{$t('pages.similar-projects')}}</b-card-title>
-                                <gallery-detail />
-                            </b-card-body>
-                        </b-card>
-
-                        <b-card class="mb-4" no-body>
-                            <b-card-body>
-                                <b-card-title>{{$t('pages.who-to-follow')}}</b-card-title>
-                                <div class="remove-last-border remove-last-margin remove-last-padding">
-                                    <user-follow v-for="(friend, fIndex) in followers" :data="friend" :key="`frind_${fIndex}`" />
-                                </div>
-                            </b-card-body>
-                        </b-card>
-
-                        <b-card class="mb-4" no-body>
-                            <b-card-body>
-                                <b-card-title>{{$t('pages.recent-posts')}} </b-card-title>
-                                <div class="remove-last-border remove-last-margin remove-last-padding">
-                                    <recent-post v-for="(post,postIndex) in recentPosts" :data="post" :key="`recent_post_${postIndex}`" />
-                                </div>
                             </b-card-body>
                         </b-card>
                     </b-colxx>
                     <b-colxx xxs="12" lg="7" xl="8" class="col-right">
-                        <post v-for="(post,postIndex) in posts" :data="post" :key="`post_${postIndex}`" class="mb-4" />
+                        <b-card class="mb-4" no-body>
+                            <b-card-body>
+                            <b-card-title>{{$t('Add post')}}</b-card-title>
+                            <b-form-textarea
+                                id="textarea"
+                                v-model="text"
+                                placeholder="Enter something..."
+                                rows="3"
+                                max-rows="6"
+                                ></b-form-textarea>
+                            <b-form-file
+                            v-model="file"
+                            placeholder="Choose an image or drop it here..."
+                            drop-placeholder="Drop file here..."
+                            ></b-form-file>
+                            <b-button @click="addPost" class="primary m-2" size="small">Create</b-button>
+                            </b-card-body>
+                        </b-card>
+                        <post @deleted="getPosts" v-for="(post,postIndex) in posts" :data="post" :key="`post_${postIndex}`" class="mb-4" />
                     </b-colxx>
                 </b-row>
-            </b-tab>
-
-            <b-tab :title="$t('pages.images')">
-                <gallery-profile />
-               
             </b-tab>
 
             <b-tab :title="$t('pages.friends')">
                 <b-row>
                     <b-colxx v-for="(follower,followerIndex) in friends" xxs="12" md="6" lg="4" :key="`follower_${followerIndex}`">
-                        <user-card-basic :data="follower" />
+                        <user-follow-unf @changed="getFollowers" :data="follower" />
                     </b-colxx>
                 </b-row>
             </b-tab>
@@ -102,26 +63,27 @@
 </template>
 
 <script>
+import { mapGetters} from "vuex";
+
+import moment from 'moment'
+
 import SingleLightbox from "../../../../components/Pages/SingleLightbox";
 import GalleryDetail from "../../../../components/Pages/GalleryDetail"
 import GalleryProfile from "../../../../components/Pages/GalleryProfile"
-import UserFollow from "../../../../components/Cards/UserFollow";
+import UserFollowUnf from "../../../../components/Cards/UserFollowUnf";
 import RecentPost from "../../../../components/Common/RecentPost";
-import UserCardBasic from "../../../../components/Cards/UserCardBasic";
 import Post from "../../../../components/Cards/Post";
 
 import produtcs from "../../../../data/products";
 import recentPosts from "../../../../data/recentPosts";
 import followers from "../../../../data/follow";
-import posts from "../../../../data/posts";
 export default {
     components: {
         "single-lightbox": SingleLightbox,
         "gallery-detail": GalleryDetail,
         "gallery-profile": GalleryProfile,
-        "user-follow": UserFollow,
+        "user-follow-unf": UserFollowUnf,
         "recent-post": RecentPost,
-        "user-card-basic": UserCardBasic,
         "post": Post
     },
     data() {
@@ -129,11 +91,74 @@ export default {
             produtcs: produtcs.slice(0, 15),
             recentPosts,
             followers: followers.slice(0, 5),
-            friends: followers.slice(0),
-            posts
+            friends: [],
+            apiUrl: process.env.VUE_APP_API_URL,
+            text: null,
+            file: null,
+            posts: null,
         };
     },
-    methods: {},
-    mounted() {}
+    methods: {
+        moment,
+        getFollowers() {
+           this.$Axios.get('/followers')
+           .then(res => {
+               console.log(res.data)
+               this.friends = res.data
+           })
+           .catch(e => console.log(e))
+        },
+        addPost(){
+            if(!this.file && !this.text) {
+                this.$notify("error", "Post", "FiLL all fields", {
+                    duration: 3000,
+                    permanent: false
+                    });
+            } else {
+                let formData = new FormData()
+                    formData.append('desc', this.text)
+                    formData.append('photo', this.file)
+
+                console.log(formData);
+
+                this.$Axios({
+                    method: 'post',
+                    url: '/post',
+                    data: formData,
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                })
+                .then(res => {
+                    this.$notify("error", "Post", "Post added", {
+                        duration: 3000,
+                        permanent: false
+                        });
+                    this.getPosts()
+                    this.file = null
+                    this.text = null
+                })
+                .catch(e => {
+                    console.log(e)
+                })
+            }
+        },
+        getPosts() {
+            this.$Axios.get('/post')
+                .then(res => {
+                    this.posts = res.data.reverse()
+                })
+                .catch(e => {
+                    console.log(e)
+                })
+        }
+    },
+    computed: {
+    ...mapGetters({
+      currentUser: "currentUser",
+    })
+  },
+    mounted() {
+        this.getPosts()
+        this.getFollowers()
+    }
 };
 </script>

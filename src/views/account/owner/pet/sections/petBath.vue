@@ -16,8 +16,11 @@
       <b-collapse id="Bath" accordion="Bath" role="tabpanel">
         <b-card-body>
           <b-row>
-              <b-col cols="12" class="icon-cards-row">
-                  <icon-card :title="$t('Last Bath')" icon="iconsminds-rain-drop" :value="'14:00'" />
+              <b-col v-if="pet.lastBath" cols="12" class="icon-cards-row">
+                  <icon-card :title="'Next Bath'" icon="iconsminds-rain-drop" :value="moment(pet.lastBath).format('DD/MM/YYYY HH:mm')" />
+              </b-col>
+              <b-col cols="12" class="icon-cards-row" v-else>
+                <icon-card :title="'Next Bath'" icon="iconsminds-close" :value="'No bath scheduled'" />
               </b-col>
           </b-row>
         </b-card-body>
@@ -28,24 +31,17 @@
 
 <script>
 import IconCard from '@/components/Cards/IconCard'
+import moment from 'moment'
 
   export default {
+      props: {
+         pet: Object
+      },
       components: {
          IconCard 
       },
-    data() {
-      return {
-        text: `
-          Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry
-          richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor
-          brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon
-          tempor, sunt aliqua put a bird on it squid single-origin coffee nulla
-          assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore
-          wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher
-          vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic
-          synth nesciunt you probably haven't heard of them accusamus labore VHS.
-        `
-      }
-    }
+      methods: {
+          moment,
+      },
   }
 </script>

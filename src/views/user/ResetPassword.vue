@@ -2,19 +2,15 @@
 <b-row class="h-100">
     <b-colxx xxs="12" md="10" class="mx-auto my-auto">
         <b-card class="auth-card" no-body>
-            <div class="position-relative image-side">
-                <p class="text-white h2">{{ $t('dashboards.magic-is-in-the-details') }}</p>
-                <p class="white mb-0">
-                    Please use your credentials to login.
-                    <br />If you are not a member, please
-                    <router-link tag="a" to="/user/register" class="white">register</router-link>.
-                </p>
+            <div class="position-relative image-side-forgot">
+                <div class="text-center mt-0 mb-2">
+                    <router-link tag="a" to="/">
+                        <img src="/assets/img/logo-black.svg"/>
+                    </router-link>
+                </div>
             </div>
             <div class="form-side">
-                <router-link tag="a" to="/">
-                    <span class="logo-single" />
-                </router-link>
-                <h6 class="mb-4">{{ $t('user.login-title')}}</h6>
+                <h6 class="mb-4">{{ $t('Reset password')}}</h6>
 
                 <b-form @submit.prevent="formSubmit" class="av-tooltip tooltip-label-bottom">
                     <b-form-group :label="$t('user.password')" class="has-float-label mb-4">
@@ -30,7 +26,6 @@
                     </b-form-group>
 
                     <div class="d-flex justify-content-between align-items-center">
-                        <router-link tag="a" to="/user/forgot-password">{{ $t('user.forgot-password-question')}}</router-link>
                         <b-button type="submit" variant="primary" size="lg" :disabled="processing" :class="{'btn-multiple-state btn-shadow': true,
                     'show-spinner': processing,
                     'show-success': !processing && loginError===false,
@@ -100,14 +95,28 @@ export default {
         ...mapGetters(["currentUser", "processing", "loginError", "resetPasswordSuccess"])
     },
     methods: {
-        ...mapActions(["resetPassword"]),
+        ...mapActions(["resetPassword","signOut"]),
         formSubmit() {
             this.$v.form.$touch();
             if (!this.$v.form.$anyError) {
-                this.resetPassword({
-                    newPassword: this.form.password,
-                    resetPasswordCode: this.$route.query.oobCode || ""
-                });
+                let data= {
+                    password: this.form.password,
+                    confirmPassword: this.form.passwordAgain,
+                }
+
+                let token = localStorage.getItem('token')
+                this.$Axios.put('/resetPassword',data)
+                .then(res =>{
+                    localStorage.removeItem('token')
+                     this.signOut()
+                     this.$router.push('/user/login')
+                })
+                .catch(e =>  {
+                     this.$notify("error", "Reset Password", "Passwords not matching", {
+                            duration: 3000,
+                            permanent: false
+                        });
+                })
             }
         }
     },

@@ -9281,6 +9281,18 @@ vuejs-datetimepicker@^1.1.13:
     date-fns "^1.29.0"
     vue "^2.3.3"
 
+vuejs-dialog@^1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/vuejs-dialog/-/vuejs-dialog-1.4.2.tgz#33ef5a7669291c1bb09f2e958c4a438e54cdd293"
+  integrity sha512-6kRse144WXDFBMKdeuqE43rHy0ZJ81uLOFh62r2d80ICKavQYHIvr+GlTFmoR23190lC4f2w+ZJ8cS4ljkCDMw==
+
+vuejs-sui-confirmation@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/vuejs-sui-confirmation/-/vuejs-sui-confirmation-0.0.4.tgz#40384e8645bc80199f2e43ff8647504d2d2641e3"
+  integrity sha512-15Y6CrOo3g/TOJs0tHviPC8db8KeItkJcmlvyToBdyE5Gcc1+MjKgreFdUSqX9jj4ce3Sy4S+vhvdtc/INj4Ew==
+  dependencies:
+    postcss-loader "^3.0.0"
+
 vuelidate@^0.7.4:
   version "0.7.6"
   resolved "https://registry.yarnpkg.com/vuelidate/-/vuelidate-0.7.6.tgz#84100c13b943470660d0416642845cd2a1edf4b2"

@@ -1,13 +1,24 @@
-import { isDemo } from '../constants/config'
-export default (to, from, next) => {
+import store from '@/store'
 
-  if (isDemo)
-    next()
-  if (localStorage.getItem('user') != null && localStorage.getItem('user').length > 0) {
-    // verify with firebase or jwt
+export const AuthRequired = function (to, from, next) {
+  let token = store.getters.token
+  if (token) {
     next()
   } else {
     localStorage.removeItem('user')
     next('/user/login')
+  }
+}
+
+export const NotAuthRequired = function (to, from, next) {
+  let token = store.getters.token
+  let type = store.getters.type
+  if (!token) {
+    next()
+  } else {
+    if(type == 'Pet Owner')
+    next('/owner/pets');
+    if(type == 'Veterinary')
+    next('/vet/profile')
   }
 }

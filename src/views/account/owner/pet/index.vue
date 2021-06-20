@@ -21,7 +21,7 @@ export default {
         let id = this.$route.params.id
         this.$Axios.get('/pet/' + id)
        .then(res => {
-           let pet = res.data;
+           let pet = res.data.pet;
            this.pet = {
               id: pet._id,
               image: this.apiUrl + '/' + pet.photo,
@@ -35,6 +35,7 @@ export default {
               food: pet.food,
               treatment: pet.treatment,
               vaccine: pet.vaccine,
+              status: pet.status
             }
        })
        .catch(e => {

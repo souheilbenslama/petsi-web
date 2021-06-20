@@ -64,18 +64,23 @@ import {
     menuHiddenBreakpoint,
     subHiddenBreakpoint
 } from '../constants/config'
-import menuItems from '../constants/menu'
+import {ownerMenu, vetMenu} from '../constants/menu'
 
 export default {
     data() {
         return {
             selectedParentMenu: '',
             isMenuOver: false,
-            menuItems,
+            menuItems: [],
+            ownerMenu,
+            vetMenu,
             viewingParentMenu: ''
         }
     },
     mounted() {
+        if(this.type == 'Pet Owner') this.menuItems = ownerMenu
+        if(this.type == 'Veterinary') this.menuItems = vetMenu
+        console.log(this.menuItems)
         this.selectMenu()
         window.addEventListener('resize', this.handleWindowResize)
         document.addEventListener('click', this.handleDocumentClick)
@@ -256,7 +261,8 @@ export default {
         ...mapGetters({
             menuType: 'getMenuType',
             menuClickCount: 'getMenuClickCount',
-            selectedMenuHasSubItems: 'getSelectedMenuHasSubItems'
+            selectedMenuHasSubItems: 'getSelectedMenuHasSubItems',
+            type: 'type',
         })
     },
     watch: {

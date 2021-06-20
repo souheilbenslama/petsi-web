@@ -25,7 +25,10 @@
     "username": "Username"
   },
   "menu": {
+    "blogs":"Follow requests",
     "pets": "Pets",
+    "owner": "Owner",
+    "vet": "Veterinary",
     "market": "Market",
     "app": "Home",
     "dashboards": "Dashboards",

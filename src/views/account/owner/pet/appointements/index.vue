@@ -13,7 +13,7 @@
                         v-if="selected"
               id="modalEditAppointment"
               ref="modalEditAppointment"
-              :title="$t('pages.add-new-pet')"
+              :title="$t('Appointement')"
               modal-class="modal-right"
             >
               <b-form>
@@ -158,6 +158,7 @@
 </template>
 <script>
 import VuetablePaginationBootstrap from "@/components/Common/VuetablePaginationBootstrap";
+import moment from 'moment'
 
 export default {
   components: {
@@ -183,14 +184,14 @@ export default {
         selectMode: "single",
         fields: [
           {
-            key: "date",
+            key: "dateForm",
             label: "Date",
             sortable: true,
             sortDirection: "desc",
             tdClass: "list-item-heading"
           },
           {
-            key: "vet",
+            key: "vetName",
             label: "Veterinary",
             sortable: true,
             tdClass: "text-muted"
@@ -217,13 +218,24 @@ export default {
      this.getAppointments();
   },
   methods: {
+    moment,
       hideModal(refname) {
       this.$refs[refname].hide();
     },
     onRowSelected(items) {
         this.selected = items[0]
-      },
+        },
     addNewAppointment() {
+      let f = this.newAppointment
+      if(!f.vet || !f.lieu || !f.date) {
+        this.$notify("error", "Add Appointment", "Fill all fields", {
+                        duration: 3000,
+                        permanent: false
+                        });
+            return
+      }
+
+
       this.$Axios.post('/pet/'+this.petId+'/appointment',this.newAppointment)
       .then(res => {
         this.newAppoinment = {}
@@ -257,7 +269,7 @@ export default {
       .then(res => {
         this.vetOptions= []
         res.data.forEach(user => {
-          if(user.role == 'vet'){
+          if(user.role == 'Veterinary'){
             let option = {
               value: user._id,
               text: user.name + " " + user.surname,
@@ -280,7 +292,9 @@ export default {
               _id: appo._id,
               lieu: appo.lieu,
               rapport: appo.rapport,
-              vet: appo.vet,
+              vet: appo.vet._id,
+              vetName: appo.vet.name + ' ' + appo.vet.surname,
+              dateForm: this.moment(appo.date).format('DD-MM-YYYY'),
               date: appo.date,
               desc: appo.name,
               done: appo.done,
@@ -293,6 +307,7 @@ export default {
       })
     },
     confirmAppointment(id){
+      if(!confirm('are you sure ?')) return
       this.$Axios.put('/pet/'+this.petId+'/appointment/' + id,{done: true})
         .then(res => {
           this.getAppointments()
@@ -317,6 +332,7 @@ export default {
         .catch(e => console.log(e))
     },
     deleteAppointment(id){
+      if(!confirm('are you sure ?')) return
        this.$Axios.delete('/pet/'+this.petId+'/appointment/' + id)
         .then(res => {
           this.getAppointments()

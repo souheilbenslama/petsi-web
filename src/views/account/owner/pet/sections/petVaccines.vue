@@ -50,7 +50,7 @@
 
 <script>
 import LogList from "@/components/Listing/LogList";
-import logs from "@/data/logs";
+import moment from 'moment'
 export default {
   components: {
     LogList
@@ -66,6 +66,7 @@ export default {
      this.getVaccines();
   },
   methods: {
+    moment,
     getVaccines(){
       this.$Axios.get('/pet/'+this.petId+'/vaccine')
       .then(res => {
@@ -74,8 +75,8 @@ export default {
         res.data.forEach(vacc => {
           let vaccine = {
               label: vacc.name,
-              time: vacc.date,
-              color: "border-theme-1",
+              time: this.moment(vacc.date).format('DD-MM-YYYY'),
+              color: "border-theme-4",
               key: vacc._id
           }
           vacc.done ? this.Done.push(vaccine) : this.toDo.push(vaccine)

@@ -124,6 +124,7 @@
 <script>
 import VuetablePaginationBootstrap from "@/components/Common/VuetablePaginationBootstrap";
 import datetime from 'vuejs-datetimepicker';
+import moment from 'moment'
 
 export default {
   components: {
@@ -154,7 +155,7 @@ export default {
             tdClass: "list-item-heading"
           },
           {
-            key: "date",
+            key: "dateForm",
             label: "Date/Time",
             sortable: true,
             tdClass: "text-muted"
@@ -168,6 +169,7 @@ export default {
      this.getBaths()
   },
   methods: {
+    moment,
       hideModal(refname) {
       this.$refs[refname].hide();
     },
@@ -175,6 +177,16 @@ export default {
         this.selected = items[0]
       },
     addNewBath() {
+      let f = this.newBath
+
+      if(!f.description || !f.date) {
+        this.$notify("error", "Add Bath", "Fill all fields", {
+                        duration: 3000,
+                        permanent: false
+                        });
+            return
+      }
+
       this.$Axios.post('/pet/'+this.petId+'/bath',this.newBath)
       .then(res => {
         this.newBath = {}
@@ -200,6 +212,7 @@ export default {
       .then(res => {
         this.bathsList= []
         res.data.forEach(bath => {
+          bath.dateForm = this.moment(bath.date).format('DD-MM-YYYY HH:mm')
           this.bathsList.push(bath)
         })
       })
@@ -208,6 +221,7 @@ export default {
       })
     },
     confirmBath(id){
+      if(!confirm('are you sure ?')) return
       this.$Axios.put('/pet/'+this.petId+'/bath/' + id,{done: true})
         .then(res => {
           this.getBaths()
@@ -232,6 +246,7 @@ export default {
         .catch(e => console.log(e))
     },
     deleteBath(id){
+      if(!confirm('are you sure ?')) return
        this.$Axios.delete('/pet/'+this.petId+'/bath/' + id)
         .then(res => {
           this.getBaths()

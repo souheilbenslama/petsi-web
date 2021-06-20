@@ -69,7 +69,7 @@
                     <b-row>
                         <b-col>
                             <router-link tag="a" to="/user/register">{{
-                                $t("Vous voulez créer un compte?")
+                                $t("Do you want to create an account?")
                             }}</router-link>
                         </b-col>
                     </b-row>
@@ -162,16 +162,16 @@ export default {
   },
   watch: {
     currentUser(val) {
-      console.log(val)
       if (val && val._id && val._id.length > 0) {
-        setTimeout(() => {
+        if(val.user.role == 'Pet Owner')
           this.$router.push("/owner/pets");
-        }, 200);
+        if(val.user.role == 'Veterinary')
+          this.$router.push("/vet/profile");
       }
     },
     loginError(val) {
       if (val != null) {
-        this.$notify("error", "Login Error", val, {
+        this.$notify("error", "Login Error", "Email or Password is wrong", {
           duration: 3000,
           permanent: false
         });

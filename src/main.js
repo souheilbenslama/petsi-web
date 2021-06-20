@@ -32,6 +32,8 @@ import 'firebase/auth'
 // import Vuelidate from 'vuelidate'
 // Vue.use(Vuelidate);
 
+
+
 import apiAxios from './services/axios'
 
 Vue.prototype.$Axios = apiAxios

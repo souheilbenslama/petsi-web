@@ -4,9 +4,9 @@
         <b-card class="auth-card" no-body>
             <div class="position-relative image-side-forgot">
                 <div class="text-center mt-0 mb-2">
-                <router-link tag="a" to="/">
-                    <img src="/assets/img/logo-black.svg"/>
-                </router-link>
+                    <router-link tag="a" to="/">
+                        <img src="/assets/img/logo-black.svg"/>
+                    </router-link>
                 </div>
             </div>
             <div class="form-side">
@@ -19,7 +19,6 @@
                         <b-form-invalid-feedback v-else-if="!$v.form.email.minLength">Your email must be minimum 4 characters</b-form-invalid-feedback>
                     </b-form-group>
                     <div class="d-flex justify-content-between align-items-center">
-                        <router-link tag="a" to="/user/forgot-password">{{ $t('user.forgot-password-question')}}</router-link>
                         <b-button type="submit" variant="primary" size="lg" :disabled="processing" :class="{'btn-multiple-state btn-shadow': true,
                     'show-spinner': processing,
                     'show-success': !processing && loginError===false,
@@ -35,7 +34,7 @@
                             <span class="icon fail">
                                 <i class="simple-icon-exclamation"></i>
                             </span>
-                            <span class="label">{{ $t('user.reset-password-button') }}</span>
+                            <span class="label">{{ $t('Send') }}</span>
                         </b-button>
                     </div>
                 </b-form>
@@ -64,7 +63,7 @@ export default {
     data() {
         return {
             form: {
-                email: "test@coloredstrategies.com"
+                email: ""
             }
         };
     },
@@ -86,9 +85,20 @@ export default {
         formSubmit() {
             this.$v.form.$touch();
             if (!this.$v.form.$anyError) {
-                this.forgotPassword({
+                let data ={
                     email: this.form.email
-                });
+                }
+                
+                this.$Axios.post('/forgetPassword',data)
+                .then(res =>{
+                     this.$router.push('/user/reset-token')
+                })
+                .catch(e =>  {
+                     this.$notify("error", "Reset Password", "Email not found", {
+                            duration: 3000,
+                            permanent: false
+                        });
+                })
             }
         }
     },

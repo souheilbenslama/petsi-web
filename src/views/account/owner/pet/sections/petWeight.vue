@@ -21,23 +21,16 @@
               <b-form-group :label="'Today\'s weight'">
                 <b-form-input v-model="todayWeight" />
               </b-form-group>
-               <b-button class="mb-2" variant="success" size="sm">confirm</b-button>
+               <b-button @click="addWeight" class="mb-2" variant="success" size="sm">confirm</b-button>
+            </b-col> 
+            <b-col cols="6"> 
               <gradient-card>
                 <i class="iconsminds-scale text-white display-1"/>
                 <p class="lead text-white">
                   {{ $t("Your pet's weight is :") }}
-                  3Kg
+                  {{pet.weight}}
                 </p>
               </gradient-card>
-            </b-col>
-            <b-col cols="6">
-              <b-colxx xxs="12" class="mb-4">
-                <b-card :title="$t('dashboards.sales')">
-                    <div class="dashboard-line-chart">
-                        <line-shadow-chart :data="lineChartData" :height="285" />
-                    </div>
-                </b-card>
-            </b-colxx>
             </b-col>
           </b-row>
         </b-card-body>
@@ -54,6 +47,7 @@ import LineShadowChart from '@/components/Charts/LineShadow'
 import { lineChartData } from "@/data/charts.js";
 
 export default {
+  props: ["pet"],
   components: {
     GradientCard,
     AreaShadowChart,
@@ -93,5 +87,14 @@ export default {
           synth nesciunt you probably haven't heard of them accusamus labore VHS.
         `
   }),
+  methods: {
+    addWeight() {
+      this.$Axios.post('/pet/'+ this.pet.id + '/weight',{weight: this.todayWeight})
+      .then(res => {
+           this.pet.weight = this.todayWeight + ' Kg'
+           this.todayWeight = null
+      })
+    }
+  }
 };
 </script>

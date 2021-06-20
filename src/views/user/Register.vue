@@ -152,14 +152,14 @@
                 >Please enter your birthdate</b-form-invalid-feedback
               >
             </b-form-group>
-            <b-form-group :label="$t('user.gender')" class="has-float-label mb-4">
+            <b-form-group :label="$t('Gender')" class="has-float-label mb-4">
               <b-form-select
                 v-model="$v.form.gender.$model"
                 :options="genderOptions"
                 :state="!$v.form.gender.$error"
               ></b-form-select>
               <b-form-invalid-feedback v-if="!$v.form.gender.required"
-                >Please chose a gender</b-form-invalid-feedback
+                >Please select a gender</b-form-invalid-feedback
               >
             </b-form-group>
             <b-form-group :label="$t('user.role')" class="has-float-label mb-4">
@@ -169,14 +169,14 @@
                 :state="!$v.form.role.$error"
               ></b-form-select>
               <b-form-invalid-feedback v-if="!$v.form.role.required"
-                >Please chose a role</b-form-invalid-feedback
+                >Please select a role</b-form-invalid-feedback
               >
             </b-form-group>
 
             <div class="d-flex justify-content-end align-items-center">
               <b-col>
                 <router-link tag="a" to="/user/login">{{
-                  $t("Vous avez un compte?")
+                  $t("Do you have an account?")
                 }}</router-link>
               </b-col>
               <b-button
@@ -221,8 +221,8 @@ export default {
       },
 
       options: [
-        { value: "owner", text: "Owner" },
-        { value: "vet", text: "Veterinary" }
+        { value: "Pet Owner", text: "Owner" },
+        { value: "Veterinary", text: "Veterinary" }
       ],
       genderOptions: [
         { value: "male", text: "Homme" },

@@ -16,8 +16,11 @@
       <b-collapse id="food" accordion="food" role="tabpanel">
         <b-card-body>
           <b-row>
-              <b-col cols="12" class="icon-cards-row">
-                    <icon-card :title="$t('Next Food')" icon="iconsminds-clock" :value="'14/08/2021 14:00'" />
+              <b-col cols="12" class="icon-cards-row" v-if="pet.nextFood">
+                    <icon-card :title="$t('Next Food')" icon="iconsminds-clock" :value="moment(pet.nextFood.date).format('DD/MM/YYYY HH:mm')" />
+              </b-col>
+              <b-col cols="12" class="icon-cards-row" v-else>
+                    <icon-card :title="$t('')" icon="iconsminds-close" :value="'There is no food scheduled'" />
               </b-col>
           </b-row>
         </b-card-body>
@@ -29,10 +32,17 @@
 <script>
 
 import IconCard from '@/components/Cards/IconCard'
+import moment from 'moment'
 
   export default {
+      props: {
+         pet: Object
+      },
       components: {
          IconCard 
+      },
+      methods: {
+        moment,
       },
     data() {
       return {

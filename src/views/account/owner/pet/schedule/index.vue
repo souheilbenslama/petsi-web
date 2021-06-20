@@ -100,24 +100,10 @@ export default {
     },
     getEvents(){
       let id = this.$route.params.id
-        this.$Axios.get('/pet/' + id)
+        this.$Axios.get('/pet/' + id + '/appointment')
        .then(res => {
-           let pet = res.data;
-           this.pet = {
-              id: pet._id,
-              image: this.apiUrl + '/' + pet.photo,
-              name: pet.name,
-              breed: pet.breed,
-              birthday: pet.birthday,
-              weight: pet.weight + ' Kg',
-              gender: pet.sex,
-              appointment: pet.appointment,
-              bath: pet.appointment,
-              food: pet.food,
-              treatment: pet.treatment,
-              vaccine: pet.vaccine,
-            }
-          pet.appointment.forEach(appo => {
+           
+          res.data.forEach(appo => {
               console.log(appo)
               let event = {
                 id: appo._id,
@@ -128,8 +114,15 @@ export default {
               console.log(event)
               this.calendar.events.push(event)
           })
-
-          pet.bath.forEach(bath => {
+       })
+       .catch(e => {
+         console.log(e)
+       })
+       
+       this.$Axios.get('/pet/' + id + '/bath')
+       .then(res => {
+           
+          res.data.forEach(bath => {
               console.log(bath)
               let event = {
                 id: bath._id,
@@ -140,8 +133,15 @@ export default {
               console.log(event)
               this.calendar.events.push(event)
           })
+       })
+       .catch(e => {
+         console.log(e)
+       })
 
-          pet.food.forEach(food => {
+       this.$Axios.get('/pet/' + id + '/food')
+       .then(res => {
+           
+          res.data.forEach(food => {
               let event = {
                 id: food._id,
                 startDate: this.thisMonth(moment(food.date).format("DD"), moment(food.date).format("HH"), moment(food.date).format("mm")),
@@ -150,8 +150,15 @@ export default {
               }
               this.calendar.events.push(event)
           })
+       })
+       .catch(e => {
+         console.log(e)
+       })
 
-          pet.vaccine.forEach(vaccine => {
+       this.$Axios.get('/pet/' + id + '/vaccine')
+       .then(res => {
+           
+          res.data.forEach(vaccine => {
               let event = {
                 id: vaccine._id,
                 startDate: this.thisMonth(moment(vaccine.date).format("DD"), moment(vaccine.date).format("HH"), moment(vaccine.date).format("mm")),

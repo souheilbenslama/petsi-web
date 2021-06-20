@@ -1,6 +1,5 @@
 import firebase from 'firebase/app'
 import 'firebase/auth'
-import { currentUser } from '../../constants/config'
 import apiAxios from '../../services/axios'
 
 export default {
@@ -11,6 +10,7 @@ export default {
     forgotMailSuccess:null,
     resetPasswordSuccess:null,
     token: null,
+    type: null,
   },
   getters: {
     currentUser: state => state.currentUser,
@@ -19,6 +19,7 @@ export default {
     forgotMailSuccess: state => state.forgotMailSuccess,
     resetPasswordSuccess:state => state.resetPasswordSuccess,
     token: state => state.token,
+    type: state => state.type,
   },
   mutations: {
     setUser(state, payload) {
@@ -26,6 +27,7 @@ export default {
       state.processing = false
       state.loginError = null
       state.token = payload.token
+      state.type = payload.type
     },
     updateUser(state, payload) {
       state.currentUser = payload.user
@@ -37,6 +39,7 @@ export default {
       state.processing = false
       state.loginError = null
       state.token = null
+      state.type = null
     },
     setProcessing(state, payload) {
       state.processing = payload
@@ -64,16 +67,17 @@ export default {
     }
   },
   actions: {
-    updateProfile({ commit }, payload) {
+    profileUpdate({ commit }, payload) {
       commit('clearError')
       commit('setProcessing', true)
+      console.log(payload)
       let data = payload
       const item = { _id: data.user._id }
         localStorage.setItem('user', JSON.stringify(item))
         data = {
           user: {
             _id: data.user._id,
-            img: "/assets/img/profile-pic-2.jpg",
+            img: data.user.avatar,
             title: data.user.name + " " + data.user.surname,
             user: data.user
           },
@@ -87,18 +91,18 @@ export default {
       apiAxios.post('/login',payload)
       .then((res) => {
         let data = res.data;
-        console.log(data)
         const item = { _id: data.user._id }
         localStorage.setItem('user', JSON.stringify(item))
         localStorage.setItem('token', data.token)
         let payload = {
           user: {
             _id: data.user._id,
-            img: "/assets/img/profile-pic-2.jpg",
+            img: data.user.avatar,
             title: data.user.name + " " + data.user.surname,
             user: data.user
           },
           token: data.token,
+          type: data.user.role
         }
         commit('setUser', payload)
       })

@@ -34,7 +34,6 @@ export const currentUser = {
   date: 'Last seen today 15:24'
 }
 
-export const isDemo = true
 export const themeRadiusStorageKey = 'theme_radius'
 export const defaultColor = 'light.blue'
 export const colors = [
